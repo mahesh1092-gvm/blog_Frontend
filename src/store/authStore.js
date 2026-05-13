@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import axios from "axios";
-axios.defaults.withCredentials = true;
+
 export const useAuth = create((set) => ({
   currentUser: null,
   loading: false,
@@ -34,28 +34,29 @@ export const useAuth = create((set) => ({
     }
   },
   logout: async () => {
-    try {
-      //set loading state
-      //make logout api req
-      let res = await axios.get("https://blog-backend-rqmb.onrender.com/auth/logout", { withCredentials: true });
-      //update state
-      if (res.status === 200) {
-        set({
-          currentUser: null,
-          isAuthenticated: false,
-          error: null,
-          loading: false,
-        });
-      }
-    } catch (err) {
+  try {
+    let res = await axios.get("https://blog-backend-rqmb.onrender.com/auth/logout", { withCredentials: true });
+    if (res.status === 200) {
+      // Clear local state
       set({
-        loading: false,
-        isAuthenticated: false,
         currentUser: null,
-        error: err.response?.data?.error || "Logout failed",
+        isAuthenticated: false,
+        error: null,
+        loading: false,
       });
+      // If you store JWT in localStorage/sessionStorage, clear it too
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
     }
-  },
+  } catch (err) {
+    set({
+      loading: false,
+      isAuthenticated: false,
+      currentUser: null,
+      error: err.response?.data?.error || "Logout failed",
+    });
+  }
+},
   // restore login
   checkAuth: async () => {
     try {
@@ -84,3 +85,4 @@ export const useAuth = create((set) => ({
     }
   },
 }));
+
